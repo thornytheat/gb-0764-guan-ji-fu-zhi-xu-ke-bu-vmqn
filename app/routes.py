@@ -1,6 +1,7 @@
-from flask import Blueprint, current_app, jsonify
+from flask import Blueprint, current_app, jsonify, request
 
-from app.certificate.slip import certificate, stamp
+from app.certificate.slip import certificate, check, permit, stamp
+from app.problem import DeskError
 from app.source import read_request
 from app.vault.record import deposit, index, volume
 from app.workflow import steps
@@ -63,3 +64,22 @@ def download(run):
     result = jsonify(certificate(current_app.vault,run))
     result.headers['Content-Disposition'] = f'attachment; filename="license-{run}.json"'
     return result
+
+
+@rights.get('/api/volumes/<run>/permits/<entry>')
+def pickup(run, entry):
+    token = None
+    auth = request.headers.get('Authorization','')
+    if auth.startswith('Bearer '):
+        token = auth[7:].strip() or None
+    result = jsonify(permit(current_app.vault,run,entry,token))
+    result.headers['Content-Disposition'] = f'attachment; filename="permit-{run[:12]}-{entry}.json"'
+    return result
+
+
+@rights.post('/api/permits/verify')
+def recheck():
+    data = request.get_json(silent=True)
+    if not isinstance(data,dict):
+        raise DeskError('BAD_CREDENTIAL')
+    return check(data)

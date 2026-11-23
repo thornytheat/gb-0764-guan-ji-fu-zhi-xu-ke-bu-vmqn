@@ -16,7 +16,10 @@ def test_certificate_signature_matches_detached_document(client):
     signature=client.post(address+'/stamp').json['imprint']
     reply=client.get(address+'/export')
     assert reply.headers['Content-Disposition'].startswith('attachment;')
-    assert reply.json['verified'] and sha256(encode(reply.json['document']).encode()).hexdigest()==signature
+    head=reply.json['header']
+    assert reply.json['verified'] and sha256(encode(head).encode()).hexdigest()==signature
+    sections={name:sha256(encode(section).encode()).hexdigest() for name,section in reply.json['document'].items()}
+    assert head['sections']==sections
 
 
 def test_stamp_is_immutable_on_repeat(client):

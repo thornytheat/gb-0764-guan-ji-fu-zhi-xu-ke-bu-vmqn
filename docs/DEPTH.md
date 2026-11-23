@@ -13,6 +13,7 @@
 | M5 签发请求对账 | 复算许可页与有效额度 | `GET/POST /api/balance` | `app/register/balance.py` | `tests/test_balance.py` |
 | M6 批次留档复跑 | 取回原归档快照 | `POST /api/volumes` | `app/vault/record.py` `app/vault/database.py` | `tests/test_vault.py` |
 | M7 许可证据签发 | 签发可复验凭证 | `POST /api/volumes/{id}/stamp` | `app/certificate/slip.py` | `tests/test_certificate.py` |
+| M8 分馆凭证领取 | 凭口令下载本馆许可页凭证并独立核验 | `GET /api/volumes/{id}/permits/{entry}` `POST /api/permits/verify` | `app/certificate/tree.py` `app/certificate/slip.py` | `tests/test_permits.py` |
 
 ## 陷阱登记
 

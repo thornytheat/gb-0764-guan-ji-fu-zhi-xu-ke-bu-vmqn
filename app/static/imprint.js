@@ -45,6 +45,26 @@ bind(document.querySelector('#stamp'), async () => {
   file.href = `/api/volumes/${selected}/export`;
   file.hidden = false;
   mark.textContent = '已签发';
-  note.textContent = record.reused ? '已取回原凭证' : '复制许可凭证已落印';
+  note.textContent = (record.reused ? '已取回原凭证' : '复制许可凭证已落印') + `，本卷许可页 ${record.permits.count} 张`;
 });
 document.querySelector('#print-slip')?.addEventListener('click', () => window.print());
+
+bind(document.querySelector('#pickup'), async () => {
+  const selected = select.value;
+  const entry = document.querySelector('#pickup-entry').value.trim();
+  const token = document.querySelector('#pickup-token').value.trim();
+  const status = document.querySelector('#pickup-status');
+  const reply = await fetch(`/api/volumes/${selected}/permits/${encodeURIComponent(entry)}`, {
+    headers:{Authorization:`Bearer ${token}`},
+  });
+  const data = await reply.json();
+  if (!reply.ok) throw new Error(data.message || '领取失败');
+  const result = await send('/api/permits/verify', data);
+  status.value = result.valid ? `核验通过 · 许可 ${result.licensed} 页` : '核验未通过';
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+  link.download = `permit-${selected.slice(0,12)}-${entry}.json`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+  note.textContent = '本馆凭证已下载，印迹与落印一致';
+});
